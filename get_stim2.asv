@@ -1,9 +1,11 @@
 function data = get_stim2(task, weight, sud_ratio, visualize)
 
-if nargin == 3
+if nargin == 4
     visualize = 0;
-elseif nargin == 2
+elseif nargin == 3
     sud_ratio = [1, 1, 1]; %equally likely to pick from any one of groups
+elseif nargin == 2
+    ref_dur = 1;
 elseif nargin == 1
     weight = 0;
 end
@@ -31,18 +33,18 @@ Nsame = length(all_same);
 Nunique = length(all_unique);
 Ndiff = length(some_diff);
 
-if ~weight
-    %all equal weighting, using natural statistics based on task parameters
-    pcombos = ones(Ncombos, 1)/length(combos);
+if weight
+    pcombos = ones();
 else
-    %use input ratio of psame to punique to pdiff
+    %may change sd_ratio
+    %determine ratio of psame to punique to pdiff
     s = sud_ratio(1); u = sud_ratio(2); d = sud_ratio(3);
 
-    if Nunique || u == 0
+    if Nunique
         punique = (u/(sum(sud_ratio)))/Nunique;
         psame = (s/(sum(sud_ratio)))/Nsame;
         pdiff = (d/(sum(sud_ratio)))/Ndiff;
-    else
+    elseif u
         %warning('U set to non-zero but no available unique sets')
         punique = 0;
 

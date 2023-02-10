@@ -27,12 +27,7 @@ Nbandits = [3, 4, 5];
 Ndirections = 4; %[2, 3, 4];
 
 pswitches = [0.05]; %, 0.15, 0.20, 0.3]; %[0.05, 0.10, 0.15, 0.20];
-
-%ratio of all same:all unique: some different
-r_sud = {[1, 6, 9], [1, 6, 57], [1, 0, 255]}; 
-
-%decide whether to use weights or not
-weight = 0;
+r_sud = {[1, 1, 1], [1, 5, 5], [5, 1, 1], [1, 1, 5], [1, 5, 1]};
 
 nSims = 100;
 
@@ -50,12 +45,13 @@ logitfittype = fittype('a/(1+exp(-k*(x-b))) + c',...
 options_logit = fitoptions('Method', 'NonlinearLeastSquares', ...
 'Lower',[-2 -10 -1 0], 'Upper',[2 10 10 1]); %a,k,b,c (a+c = upper asymptote, c = lower asymptote)
 
-for p = 1:length(pswitches)%1:length(r_sud)
+for p = 1:length(r_sud)%1:length(pswitches)
     
     data_holder(p).prew_pre = nan(5, length(Ndirections)*length(Nbandits));
     data_holder(p).prew_post = nan(5, length(Ndirections)*length(Nbandits));
     data_holder(p).time_forget_old = nan(5, length(Ndirections)*length(Nbandits));
     data_holder(p).time_learn_new = nan(5, length(Ndirections)*length(Nbandits));
+   
 
     data_holder(p).rew_coeffs_logit = nan(5, 4, length(Ndirections)*length(Nbandits));
     data_holder(p).old_bandit_coeffs_logit = nan(5, 4, length(Ndirections)*length(Nbandits));
@@ -65,7 +61,10 @@ for p = 1:length(pswitches)%1:length(r_sud)
         fig_holder{p, f} = figure;
     end
     
-    task.pswitch = pswitches(p);
+    %r_plot = figure;
+    %p_plot = figure;
+    
+    task.pswitch = 0.05;%pswitches(p);
     
     iter = 1; %which combination of Nbandits & Ndirections
     for d = 1:length(Ndirections) 
@@ -93,11 +92,10 @@ for p = 1:length(pswitches)%1:length(r_sud)
             %get stimuli
             session_stim = {};
             for i = 1:nSims
-                %session_stim{i} = get_stim2(task, weight, r_sud{p}, 0);
-                session_stim{i} = get_stim2(task);
+                session_stim{i} = get_stim2(task, 0, 10, r_sud{p}, 0);
             end
             
-            for model = 2%0:4
+            for model = 0:4
                 
                 if model == 4
                     %Lazy Arrow
@@ -189,7 +187,7 @@ for p = 1:length(pswitches)%1:length(r_sud)
                 errorbar([-4:9],mean(sw),std(sw)/sqrt(nSims),'linewidth',2, 'Color', cols{model+1})
                 ylim([0, 1])
                 
-                %probability old/new bandit
+                %probability
                 subplot(3, 2, 2*iter)
                 hold on
                 errorbar([-4:9],mean(sw_prob_old),std(sw_prob_old)/sqrt(nSims),'linewidth',2, 'Color', cols{model+1})
@@ -245,11 +243,7 @@ for p = 1:length(pswitches)%1:length(r_sud)
 
     
     figure(fig_holder{p, 1})
-    if weight
-        sgtitle(strcat('sdr = ', num2str(r_sud{p})));
-    else
-        sgtitle("No weighting");
-    end
+    sgtitle(strcat('sdr = ', num2str(r_sud{p})));
     %sgtitle({'Exponential', strcat('prew = [', num2str(task.prew(1)), ',', num2str(task.prew(2)), ']'), strcat('sdr = ', num2str(sdr(p)))});%, strcat('pswitch = ', num2str(task.pswitch))})
   
 end
