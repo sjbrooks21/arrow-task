@@ -29,18 +29,31 @@ stim_params.pswitches = [0.05, 0.20];
 stim_params.weight = 0;
 stim_params.nSims = 1000;
 
-tic
-stim = generate_stimuli(task, stim_params);
-t = toc; %should take about 8-10 minutes
-save('all_stim_2_13_23.mat', 'stim_params', 'stim', 'task')
-%% run models, analyze data
-nSims = 1000;
+% uncomment if need to run again
+% tic
+% stim = generate_stimuli(task, stim_params);
+% t = toc; %should take about 8-10 minutes
+% save('all_stim_2_13_23.mat', 'stim_params', 'stim', 'task')
+
+%% run models, save data
+%load in stim data
+load('all_stim_2_13_23.mat', 'stim_params', 'stim', 'task')
+
+nSims = stim_params.nSims;
+pswitches = stim_params.pswitches;
+Ndirections = stim_params.Ndirections;
+Nbandits = stim_params.Nbandits;
 
 cols = {[0 0.4470 0.7410], [0.8500 0.3250 0.0980],[0.9290 0.6940 0.1250],...
     [0.4940 0.1840 0.5560], [0.4660 0.6740 0.1880]};
-mod_names = {'Bayes', 'Sticky Bayes', 'RL', 'WSLS', 'Lazy Arrow', 'All'};
-fig_holder = {};
+mod_names = {'Bayes', 'Sticky Bayes', 'RL', 'WSLS', 'Lazy Arrow'};
+mod_params = {[[10,0],... %[beta, epsilon]
+               [10,0,2],... %[beta, epsilon, stick]
+               [.5,.2],... %[alpha, stick]
+               [0],... %epsilon (noise)
+               []]}; %no parameters
 
+fig_holder = {};
 data_holder = struct;
 
 logitfittype = fittype('a/(1+exp(-k*(x-b))) + c',...
@@ -56,17 +69,18 @@ for p = 1:length(pswitches)
     data_holder(p).prew_pre_avg = nan(5, length(Ndirections)*length(Nbandits));
     data_holder(p).prew_post_avg = nan(5, length(Ndirections)*length(Nbandits));
 
-    %max of each session, distribution
-    data_holder(p).max_prew_pre_dist = cell(5, length(Ndirections)*length(Nbandits));
-    data_holder(p).max_prew_post_dist = cell(5, length(Ndirections)*length(Nbandits));
+    %reward (max & avg) distribution over sessions
+    data_holder(p).prew_pre_dist = cell(5, length(Ndirections)*length(Nbandits));
+    data_holder(p).prew_post_dist = cell(5, length(Ndirections)*length(Nbandits));
+
+    %reward fit coeff distribution over session
+    data_holder(p).rew_coeffs_logit = cell(5, 4, length(Ndirections)*length(Nbandits));
+    data_holder(p).old_bandit_coeffs_logit = cell(5, 4, length(Ndirections)*length(Nbandits));
+    data_holder(p).new_bandit_coeffs_logit = cell(5, 4, length(Ndirections)*length(Nbandits));
 
     %other measures
     data_holder(p).time_forget_old = nan(5, length(Ndirections)*length(Nbandits));
     data_holder(p).time_learn_new = nan(5, length(Ndirections)*length(Nbandits));
-
-    data_holder(p).rew_coeffs_logit = nan(5, 4, length(Ndirections)*length(Nbandits));
-    data_holder(p).old_bandit_coeffs_logit = nan(5, 4, length(Ndirections)*length(Nbandits));
-    data_holder(p).new_bandit_coeffs_logit = nan(5, 4, length(Ndirections)*length(Nbandits));
 
     for f = 1:2 %set up figures
         fig_holder{p, f} = figure;
@@ -74,8 +88,8 @@ for p = 1:length(pswitches)
     
     task.pswitch = pswitches(p);
     
-    for r = 1:length(r_sud)
     iter = 1; %which combination of Nbandits & Ndirections
+    
     for d = 1:length(Ndirections) 
         task.Ndirections = Ndirections(d);
         
@@ -99,97 +113,12 @@ for p = 1:length(pswitches)
             col_names = [{'trial', 'corr_bandit', 'iter'}, stim_names, {'rew_incorr', 'rew_corr', 'bandit', 'side', 'corr', 'reward'}, prob_stim_names];
             
             %get stimuli
-            session_stim = {};
-            for i = 1:nSims
-                session_stim{i} = get_stim2(task, weight, r_sud{r}, 0);
-                %session_stim{i} = get_stim2(task);
-            end
+            session_stim = stim{p}(iter, :);
             
             for model = 0:4
-                
-                if model == 4
-                    %Lazy Arrow
-                    for it=1:nSims
-                        task.stimData = session_stim{it};
-                        data = SimulateNBandits_LA(task);
-                        data = array2table(data);
-                        data.Properties.VariableNames = col_names;
-                        % do data analysis, store it
-                        [rew_data, prob_data] = analyzeswitch(data,task);
-                        sw(it,:) = mean(rew_data);
-                        sw_prob_old(it, :) = mean(prob_data.old_bandit);
-                        sw_prob_new(it, :) = mean(prob_data.new_bandit);
-                    end
-                end
-                
-                if model == 3
-                    %win-stay-lose-shift
-                    params = [0]; %epsilon (noise)
-                    % simulate 100 times
-                    for it=1:nSims
-                        task.stimData = session_stim{it};
-                        data = SimulateNBandits_WSLS(task, params);
-                        data = array2table(data);
-                        data.Properties.VariableNames = col_names;
-                        % do data analysis, store it
-                        [rew_data, prob_data] = analyzeswitch(data,task);
-                        sw(it,:) = mean(rew_data);
-                        sw_prob_old(it, :) = mean(prob_data.old_bandit);
-                        sw_prob_new(it, :) = mean(prob_data.new_bandit);
-                    end
-                end
-                
-                if model ==2
-                    %RL
-                    params = [.5,.2]; %[alpha, stick]
-                    % simulate 100 times HRL
-                    for it=1:nSims
-                        task.stimData = session_stim{it};
-                        data = SimulateNBandits_RL(task,params);
-                        data = array2table(data);
-                        data.Properties.VariableNames = col_names;
-                        % do data analysis, store it
-                        [rew_data, prob_data] = analyzeswitch(data,task);
-                        sw(it,:) = mean(rew_data);
-                        sw_prob_old(it, :) = mean(prob_data.old_bandit);
-                        sw_prob_new(it, :) = mean(prob_data.new_bandit);
-                    end
-    
-                elseif model==1
-                    %sticky Bayes
-                    params = [10,0,2];
-                    for it=1:nSims
-                        task.stimData = session_stim{it};
-                        data = SimulateNBandits_stick(task,params);
-                        data = array2table(data);
-                        data.Properties.VariableNames = col_names;
-                        % do data analysis, store it
-                        [rew_data, prob_data] = analyzeswitch(data,task);
-                        sw(it,:) = mean(rew_data);
-                        sw_prob_old(it, :) = mean(prob_data.old_bandit);
-                        sw_prob_new(it, :) = mean(prob_data.new_bandit);
-                    end
-               
-                elseif model==0
-                    %no stick- Bayes
-                    params = [10,0]; %[beta, epsilon]
-                    
-                    % simulate 100 times 
-                    for it=1:nSims
-                        task.stimData = session_stim{it};
-                        data = SimulateNBandits(task,params);
-                        data = array2table(data);
-                        data.Properties.VariableNames = col_names;
-                        % do data analysis, store it
-                        [rew_data, prob_data] = analyzeswitch(data,task);
-                        sw(it,:) = mean(rew_data);
-                        sw_prob_old(it, :) = mean(prob_data.old_bandit);
-                        sw_prob_new(it, :) = mean(prob_data.new_bandit);
-                    end
-                end
-                
+                mod_data = get_model_data(task, session_stim, model, mod_params{model});
+     
                 %all together
-                %figure(fig_holder{p, 6})
                 figure(fig_holder{p, 1})
                 %reward
                 subplot(3, 2, 2*iter-1)
@@ -260,9 +189,7 @@ for p = 1:length(pswitches)
                 rew = pdf(pd, x_val);
                 plot(x_val, rew, 'Color',cols{model+1}, 'LineWidth', 1)
                 xlabel('Max Probability of Reward')
-
             end
-            
             
             iter = iter + 1;
         end
@@ -279,5 +206,5 @@ for p = 1:length(pswitches)
         end
     end
 
-    end
 end
+
