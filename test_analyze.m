@@ -29,10 +29,10 @@ Ndirections = 4; %[2, 3, 4];
 pswitches = [0.05]; %, 0.15, 0.20, 0.3]; %[0.05, 0.10, 0.15, 0.20];
 
 %ratio of all same:all unique: some different
-r_sud = {[1, 6, 9], [1, 6, 57], [1, 0, 255]}; 
+r_sud = {[1, 2, 0]}; %{[1, 6, 9], [1, 6, 57], [1, 0, 255]}; 
 
 %decide whether to use weights or not
-weight = 0;
+weight = 1;
 
 nSims = 100;
 
@@ -50,7 +50,7 @@ logitfittype = fittype('a/(1+exp(-k*(x-b))) + c',...
 options_logit = fitoptions('Method', 'NonlinearLeastSquares', ...
 'Lower',[-2 -10 -1 0], 'Upper',[2 10 10 1]); %a,k,b,c (a+c = upper asymptote, c = lower asymptote)
 
-for p = 1:length(pswitches)%1:length(r_sud)
+for p = 1:length(pswitches)
     
     data_holder(p).prew_pre = nan(5, length(Ndirections)*length(Nbandits));
     data_holder(p).prew_post = nan(5, length(Ndirections)*length(Nbandits));
@@ -67,6 +67,7 @@ for p = 1:length(pswitches)%1:length(r_sud)
     
     task.pswitch = pswitches(p);
     
+    for r = 1:length(r_sud)
     iter = 1; %which combination of Nbandits & Ndirections
     for d = 1:length(Ndirections) 
         task.Ndirections = Ndirections(d);
@@ -93,11 +94,11 @@ for p = 1:length(pswitches)%1:length(r_sud)
             %get stimuli
             session_stim = {};
             for i = 1:nSims
-                %session_stim{i} = get_stim2(task, weight, r_sud{p}, 0);
-                session_stim{i} = get_stim2(task);
+                session_stim{i} = get_stim2(task, weight, r_sud{r}, 0);
+                %session_stim{i} = get_stim2(task);
             end
             
-            for model = 2%0:4
+            for model = 2:4
                 
                 if model == 4
                     %Lazy Arrow
@@ -246,10 +247,11 @@ for p = 1:length(pswitches)%1:length(r_sud)
     
     figure(fig_holder{p, 1})
     if weight
-        sgtitle(strcat('sdr = ', num2str(r_sud{p})));
+        sgtitle(strcat('sdr = ', num2str(r_sud{r})));
     else
         sgtitle("No weighting");
     end
     %sgtitle({'Exponential', strcat('prew = [', num2str(task.prew(1)), ',', num2str(task.prew(2)), ']'), strcat('sdr = ', num2str(sdr(p)))});%, strcat('pswitch = ', num2str(task.pswitch))})
-  
+
+    end
 end
