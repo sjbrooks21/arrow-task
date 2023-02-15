@@ -21,12 +21,12 @@ Ndirections = task.Ndirections;
 stimData = task.stimData; %[t cb iter stim rew_incorr rew_corr]
 
 %% set model params
-epsilon = 0;%params(2); %this is noise
-alpha = params(1); %learning rate
-stick = params(2); %choice stickiness
+epsilon = 0; %noise
+alpha = params{1}; %learning rate
+stick = params{2}; %choice stickiness
 
 if length(params) > 2
-    beta = params(3);
+    beta = params{3};
 else
     beta = 20;
 end
@@ -72,11 +72,11 @@ for t = 1:Ntrials
     r = rew(1+cor);
     
     % update arrow value - RL delta rule
-    Q(b) = Q(b) +alpha * (r-Q(b)); %if r, Q increases, else Q decreases
+    Q(b) = Q(b) +alpha(r+1) * (r-Q(b)); %if r, Q increases, else Q decreases
     
     % counterfactual updating
     others = setdiff(1:Nbandits,b); %find indices of arrows not chosen
-    Q(others) = Q(others) + alpha* ((1-r)-Q(others));
+    Q(others) = Q(others) + alpha(r+1)* ((1-r)-Q(others));
     
     % storing the data
     model_data = [model_data;[b s cor r prob]];

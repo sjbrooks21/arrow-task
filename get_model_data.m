@@ -1,4 +1,4 @@
-function mod_data = get_model_data(task, session_stim, model, params)
+function mod_data = get_model_data(task, session_stim, model, params, col_names)
 mod_data = struct;
 
 for it=1:length(session_stim)
@@ -15,7 +15,7 @@ for it=1:length(session_stim)
     elseif model == 0 %Bayes
         data = SimulateNBandits(task, params);
     end
-    
+
     data = array2table(data);
     data.Properties.VariableNames = col_names;
     % do data analysis, store it

@@ -47,11 +47,11 @@ Nbandits = stim_params.Nbandits;
 cols = {[0 0.4470 0.7410], [0.8500 0.3250 0.0980],[0.9290 0.6940 0.1250],...
     [0.4940 0.1840 0.5560], [0.4660 0.6740 0.1880]};
 mod_names = {'Bayes', 'Sticky Bayes', 'RL', 'WSLS', 'Lazy Arrow'};
-mod_params = {[[10,0],... %[beta, epsilon]
+mod_params = {[10,0],... %[beta, epsilon]
                [10,0,2],... %[beta, epsilon, stick]
                [.5,.2],... %[alpha, stick]
                [0],... %epsilon (noise)
-               []]}; %no parameters
+               []}; %no parameters
 
 fig_holder = {};
 data_holder = struct;
@@ -74,9 +74,9 @@ for p = 1:length(pswitches)
     data_holder(p).prew_post_dist = cell(5, length(Ndirections)*length(Nbandits));
 
     %reward fit coeff distribution over session
-    data_holder(p).rew_coeffs_logit = cell(5, 4, length(Ndirections)*length(Nbandits));
-    data_holder(p).old_bandit_coeffs_logit = cell(5, 4, length(Ndirections)*length(Nbandits));
-    data_holder(p).new_bandit_coeffs_logit = cell(5, 4, length(Ndirections)*length(Nbandits));
+    data_holder(p).rew_coeffs_logit = nan(5, 4, length(Ndirections)*length(Nbandits));
+    data_holder(p).old_bandit_coeffs_logit = nan(5, 4, length(Ndirections)*length(Nbandits));
+    data_holder(p).new_bandit_coeffs_logit = nan(5, 4, length(Ndirections)*length(Nbandits));
 
     %other measures
     data_holder(p).time_forget_old = nan(5, length(Ndirections)*length(Nbandits));
@@ -99,14 +99,14 @@ for p = 1:length(pswitches)
             %stimulus names
             stim_names = {};
             for i = 1:task.Nbandits
-                stim = strcat('stim_', int2str(i));
-                stim_names{end+1} = stim;
+                stim_name = strcat('stim_', int2str(i));
+                stim_names{end+1} = stim_name;
             end
             
             prob_stim_names = {};
             for i = 1:task.Nbandits
-                stim = strcat('prob_stim_', int2str(i));
-                prob_stim_names{end+1} = stim;
+                stim_name = strcat('prob_stim_', int2str(i));
+                prob_stim_names{end+1} = stim_name;
             end
             
             %[t cb iter stim rew b s cor r prob]];
@@ -116,8 +116,12 @@ for p = 1:length(pswitches)
             session_stim = stim{p}(iter, :);
             
             for model = 0:4
-                mod_data = get_model_data(task, session_stim, model, mod_params{model});
+                mod_data = get_model_data(task, session_stim, model, mod_params{model+1},col_names);
      
+                sw = mod_data.rew_data;
+                sw_prob_old = mod_data.prob_old;
+                sw_prob_new = mod_data.prob_new;
+
                 %all together
                 figure(fig_holder{p, 1})
                 %reward
