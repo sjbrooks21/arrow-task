@@ -808,20 +808,20 @@ b = 2;
             subplot(1, 2, 1)
             hold on
             plot(stickies, plot_vals_pre(b, :, p), '.-', 'linewidth', 1.2, 'Color', cols{p}, 'MarkerSize', 10)
-        title({'pre-switch maximum p(reward)'})
+        title({'pre-switch maximum p(reward)', strcat('pswitch = ', num2str(task.pswitch))})
         xlabel('stickiness')
         ylabel('probability of reward')
         ylim([0, 1])
 
-        subplot(1, 2, 2)
+        subplot(1, 2, 2*p)
         hold on
         plot(stickies, plot_vals_post(b, :, p), '.-', 'linewidth', 1.2, 'Color', cols{p}, 'MarkerSize', 10)
-        title({'post-switch maximum p(reward)'})
+        title({'post-switch maximum p(reward)', strcat('pswitch = ', num2str(task.pswitch))})
         xlabel('stickiness')
         ylabel('probability of reward')
         ylim([0, 1])
         end
-legend(string(pswitches))
+
 %% WSLS no memory
 wsls_model_data = struct;
 

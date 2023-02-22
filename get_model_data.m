@@ -21,15 +21,17 @@ for it=1:length(session_stim)
     data = array2table(data);
     data.Properties.VariableNames = col_names;
     % do data analysis, store it
-    [rew_data, prob_data] = analyzeswitch(data,task);
+    [rew_data, prob_data, pstay] = analyzeswitch(data,task);
     sw(it,:) = mean(rew_data);
     sw_prob_old(it, :) = mean(prob_data.old_bandit);
     sw_prob_new(it, :) = mean(prob_data.new_bandit);
+    sw_pstay(it, :) = pstay; 
 end
 
 mod_data.rew_data = sw;
 mod_data.prob_old = sw_prob_old;
 mod_data.prob_new = sw_prob_new;
+mod_data.pstay = sw_pstay;
 
 end
 

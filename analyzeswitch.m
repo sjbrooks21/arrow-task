@@ -1,4 +1,4 @@
-function [sw, sw_prob] = analyzeswitch(data,task)
+function [sw, sw_prob, pstay] = analyzeswitch(data,task)
 %sw size: number of switches by 14
 %gets reward of 4 trials before switch through 9 trials after switch (14
 %total)
@@ -6,6 +6,17 @@ function [sw, sw_prob] = analyzeswitch(data,task)
 
 iter = data{:,3};
 Nbandits = task.Nbandits;
+
+%pstay
+rew_inds = find(data.reward == 1);
+rew_inds(rew_inds == task.Ntrials) = [];
+nrew_inds = find(data.reward== 0);
+nrew_inds(nrew_inds == task.Ntrials) = [];
+
+pstay_rew = sum(data.bandit(rew_inds + 1) == data.bandit(rew_inds))/length(rew_inds);
+pstay_nrew = sum(data.bandit(nrew_inds + 1) == data.bandit(nrew_inds))/length(nrew_inds);
+
+pstay = [pstay_nrew, pstay_rew];
 
 T = find(iter==1);
 T = T(2:end-1); %ignore very first T value since this is very first trial, no switching occured

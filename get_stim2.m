@@ -90,16 +90,36 @@ if visualize
     dt = num2cell(dt, 2);
     c = cellfun(fun, dt);
     
-    c1 = hist(counts, 1:Nbandits);
-    c2 = hist(c, 1:Nbandits);
+%     c1 = hist(counts, 1:Nbandits);
+%     c2 = hist(c, 1:Nbandits);
+%     
+%     figure
+%     bar([c1'./Ncombos, c2'./Ntrials])
+%     ylim([0, 1])
+%     ylabel('Proportion')
+%     xlabel('Max Number of Arrows in Same Direction')
+%     legend({'Combos', 'Actual Stimuli'})
+%     title({strcat('Nbandits = ', num2str(task.Nbandits)), strcat('Ndirections = ', num2str(task.Ndirections))})
+
+    all_same_dt = find(c == Nbandits);
+    all_unique_dt = find(c == 1);
+    some_diff_dt = find(c ~= Nbandits & c ~= 1);
+    Nsame_dt = length(all_same_dt);
+    Nunique_dt = length(all_unique_dt);
+    Ndiff_dt = length(some_diff_dt);
+
+    c12 = [Nsame, Nunique, Ndiff];
+    c22 = [Nsame_dt, Nunique_dt, Ndiff_dt];
     
     figure
-    bar([c1'./Ncombos, c2'./Ntrials])
+    bar([c12'./Ncombos, c22'./Ntrials])
     ylim([0, 1])
     ylabel('Proportion')
-    xlabel('Max Number of Arrows in Same Direction')
+    xlabel('Category')
+    xticklabels({'All Same', 'All Unique', 'Some Different'})
     legend({'Combos', 'Actual Stimuli'})
-    title({strcat('Nbandits = ', num2str(task.Nbandits)), strcat('Ndirections = ', num2str(task.Ndirections))})
+    title({strcat('Nbandits = ', num2str(task.Nbandits)), strcat('Ndirections = ', num2str(task.Ndirections)), strcat('ratio = ', num2str(sud_ratio))})
+
 
 %     s = ismember(stim_inds, all_same);
 %     figure;
