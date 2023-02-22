@@ -72,7 +72,8 @@ for t = 1:Ntrials
     r = rew(1+cor);
     
     % update arrow value - RL delta rule
-    Q(b) = Q(b) +alpha(r+1) * (r-Q(b)); %if r, Q increases, else Q decreases
+    Q(b) = Q(b) + alpha(r+1) * (r-Q(b)); %if r, Q increases, else Q decreases
+    %alpha_minus used if r = 0, alpha_plus used if r = 1
     
     % counterfactual updating
     others = setdiff(1:Nbandits,b); %find indices of arrows not chosen

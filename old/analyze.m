@@ -22,14 +22,29 @@ end
 %[t cb iter stim b s cor r]];
 col_names = [{'trial', 'corr_bandit', 'iter'}, stim_names]; %, {'bandit', 'side', 'corr', 'reward'}];
 
+cols = {[0 0.4470 0.7410], [0.8500 0.3250 0.0980],[0.9290 0.6940 0.1250],...
+    [0.4940 0.1840 0.5560], [0.6350 0.0780 0.1840], [0.4660 0.6740 0.1880], [0.3010 0.7450 0.9330]};
 
 %% loop over models
 figure;
 hold on
 
 nSims = 100;
-for model = 0:4%2
-    if model == 4
+for model = [2, 3, 6]%0:4
+    if model == 6
+        %RL high alpha
+        params = [1,.2]; %[alpha, stick]
+        % simulate 100 times HRL
+        for it=1:nSims
+            
+            data = SimulateNBandits_RL(task,params);
+            data = array2table(data);
+            data.Properties.VariableNames(1:7+task.Nbandits) = [col_names, {'bandit', 'side', 'corr', 'reward'}];
+            % do data analysis, store it
+            sw(it,:) = mean(analyzeswitch(data,task));
+        end
+
+    elseif model == 4
         %Lazy Arrow
         for it=1:nSims
             data = SimulateNBandits_LA(task);
@@ -45,7 +60,7 @@ for model = 0:4%2
         params = [0]; %epsilon (noise)
         % simulate 100 times 
         for it=1:nSims
-            data = SimulateNBandits_WSLS_arrow(task, params);
+            data = SimulateNBandits_WSLS(task, params);
             data = array2table(data);
             data.Properties.VariableNames(1:7+task.Nbandits) = [col_names, {'bandit', 'side', 'corr', 'reward'}];
             % do data analysis, store it
@@ -94,7 +109,7 @@ for model = 0:4%2
         end
     end
     %plot results
-    errorbar([-4:9],mean(sw),std(sw)/sqrt(nSims),'linewidth',2)
+    errorbar([-4:9],mean(sw),std(sw)/sqrt(nSims),'linewidth',2, 'Color', cols{model+1})
 end
 ylim([.4 1])
 legend('Bayes','StickyBayes','RL', 'WSLS', 'Lazy Arrow')

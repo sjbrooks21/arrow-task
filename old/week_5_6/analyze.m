@@ -31,6 +31,7 @@ Ndirections = [2, 3, 4];
 
 pswitches = [0.05]; %[0.05, 0.10, 0.15, 0.20];
 
+
 for p = 1:length(pswitches)
     
     task.pswitch = pswitches(p);

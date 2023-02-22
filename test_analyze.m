@@ -29,7 +29,7 @@ Ndirections = 4; %[2, 3, 4];
 pswitches = [0.05]; %, 0.15, 0.20, 0.3]; %[0.05, 0.10, 0.15, 0.20];
 
 %ratio of all same:all unique: some different
-r_sud = {[1, 2, 0]}; %{[1, 6, 9], [1, 6, 57], [1, 0, 255]}; 
+r_sud = {[1, 6, 9], [1, 6, 57], [1, 0, 255]}; 
 
 %decide whether to use weights or not
 weight = 1;
@@ -50,7 +50,7 @@ logitfittype = fittype('a/(1+exp(-k*(x-b))) + c',...
 options_logit = fitoptions('Method', 'NonlinearLeastSquares', ...
 'Lower',[-2 -10 -1 0], 'Upper',[2 10 10 1]); %a,k,b,c (a+c = upper asymptote, c = lower asymptote)
 
-for p = 1:length(pswitches)
+%for p = 1:length(pswitches)
     
     data_holder(p).prew_pre = nan(5, length(Ndirections)*length(Nbandits));
     data_holder(p).prew_post = nan(5, length(Ndirections)*length(Nbandits));
@@ -61,7 +61,7 @@ for p = 1:length(pswitches)
     data_holder(p).old_bandit_coeffs_logit = nan(5, 4, length(Ndirections)*length(Nbandits));
     data_holder(p).new_bandit_coeffs_logit = nan(5, 4, length(Ndirections)*length(Nbandits));
 
-    for f = 1 %set up figures
+    for f = 1:5+length(r_sud) %set up figures
         fig_holder{p, f} = figure;
     end
     
@@ -98,7 +98,7 @@ for p = 1:length(pswitches)
                 %session_stim{i} = get_stim2(task);
             end
             
-            for model = 2:4
+            for model = 0:4
                 
                 if model == 4
                     %Lazy Arrow
@@ -134,7 +134,7 @@ for p = 1:length(pswitches)
                 
                 if model ==2
                     %RL
-                    params = [.5,.2]; %[alpha, stick]
+                    params = {[.5,0.5], [0.2]}; %[alpha, stick]
                     % simulate 100 times HRL
                     for it=1:nSims
                         task.stimData = session_stim{it};
@@ -181,9 +181,24 @@ for p = 1:length(pswitches)
                     end
                 end
                 
+                %specific model
+                figure(fig_holder{p, model+1})
+                %reward
+                subplot(3, 2, 2*iter-1)
+                hold on
+                errorbar([-4:9],mean(sw),std(sw)/sqrt(nSims),'linewidth',2, 'Color', cols{r})
+                ylim([0, 1])
+                %probability
+                subplot(3, 2, 2*iter)
+                hold on
+                errorbar([-4:9],mean(sw_prob_old),std(sw_prob_old)/sqrt(nSims),'linewidth',2, 'Color', cols{r})
+                errorbar([-4:9],mean(sw_prob_new),std(sw_prob_new)/sqrt(nSims),'--', 'linewidth',2, 'Color', cols{r})
+                ylim([0, 1])
+                sgtitle(mod_names{model + 1})
+
                 %all together
                 %figure(fig_holder{p, 6})
-                figure(fig_holder{p, 1})
+                figure(fig_holder{p, 5 + r})
                 %reward
                 subplot(3, 2, 2*iter-1)
                 hold on
@@ -196,6 +211,8 @@ for p = 1:length(pswitches)
                 errorbar([-4:9],mean(sw_prob_old),std(sw_prob_old)/sqrt(nSims),'linewidth',2, 'Color', cols{model+1})
                 errorbar([-4:9],mean(sw_prob_new),std(sw_prob_new)/sqrt(nSims),'--', 'linewidth',2, 'Color', cols{model+1})
                 ylim([0, 1])
+
+                sgtitle(strcat('sdr = ', num2str(r_sud{r})))
                 
                 %add to data structures
                 %max reward probability preswitch
@@ -220,22 +237,22 @@ for p = 1:length(pswitches)
                     data_holder(p).time_learn_new(model+1, iter) = tln-1;
                 end
 
-                 %exponential/logistic coeffs
-                 x = trials(5:end);
-
-                 y1 = mean_sw(5:end); %reward post-switch
-                 fun1_logit = fit(x',y1',logitfittype, options_logit);
-                 data_holder(p).rew_coeffs_logit(model+1, :, iter) = coeffvalues(fun1_logit);
-                 %figure; plot(fun1_logit, x, y1)
- 
-                 y2 = mean_prob_old(5:end); %probability old post-switch 
-                 fun2_logit = fit(x',y2',logitfittype, options_logit);
-                 data_holder(p).old_bandit_coeffs_logit(model+1, :, iter) = coeffvalues(fun2_logit);
-                 %figure; plot(fun2_logit, x, y2)
-
-                 y3 = mean_prob_new(5:end); %probability new post-switch 
-                 fun3_logit = fit(x',y3',logitfittype, options_logit);
-                 data_holder(p).new_bandit_coeffs_logit(model+1, :, iter) = coeffvalues(fun3_logit);
+%                  %exponential/logistic coeffs
+%                  x = trials(5:end);
+% 
+%                  y1 = mean_sw(5:end); %reward post-switch
+%                  fun1_logit = fit(x',y1',logitfittype, options_logit);
+%                  data_holder(p).rew_coeffs_logit(model+1, :, iter) = coeffvalues(fun1_logit);
+%                  %figure; plot(fun1_logit, x, y1)
+%  
+%                  y2 = mean_prob_old(5:end); %probability old post-switch 
+%                  fun2_logit = fit(x',y2',logitfittype, options_logit);
+%                  data_holder(p).old_bandit_coeffs_logit(model+1, :, iter) = coeffvalues(fun2_logit);
+%                  %figure; plot(fun2_logit, x, y2)
+% 
+%                  y3 = mean_prob_new(5:end); %probability new post-switch 
+%                  fun3_logit = fit(x',y3',logitfittype, options_logit);
+%                  data_holder(p).new_bandit_coeffs_logit(model+1, :, iter) = coeffvalues(fun3_logit);
     
             end
             
@@ -245,13 +262,13 @@ for p = 1:length(pswitches)
     end
 
     
-    figure(fig_holder{p, 1})
-    if weight
-        sgtitle(strcat('sdr = ', num2str(r_sud{r})));
-    else
-        sgtitle("No weighting");
-    end
+%     figure(fig_holder{p, 5 + r})
+%     if weight
+%         sgtitle(strcat('sdr = ', num2str(r_sud{r})));
+%     else
+%         sgtitle("No weighting");
+%     end
     %sgtitle({'Exponential', strcat('prew = [', num2str(task.prew(1)), ',', num2str(task.prew(2)), ']'), strcat('sdr = ', num2str(sdr(p)))});%, strcat('pswitch = ', num2str(task.pswitch))})
 
     end
-end
+%end

@@ -4,7 +4,9 @@ mod_data = struct;
 for it=1:length(session_stim)
     task.stimData = session_stim{it};
 
-    if model == 4 %Lazy Arrow
+    if model == 5 %WSLS no memory
+        data = SimulateNBandits_WSLS_dumb(task, params);
+    elseif model == 4 %Lazy Arrow
         data = SimulateNBandits_LA(task);
     elseif model == 3 %WSLS
         data = SimulateNBandits_WSLS(task, params);
