@@ -1,4 +1,5 @@
 function all_stims = generate_stimuli(task, stim_params)
+% gets stimuli for each task setup
 
 Nbandits = stim_params.Nbandits;
 Ndirections = stim_params.Ndirections;
