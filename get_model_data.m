@@ -1,12 +1,12 @@
 function mod_data = get_model_data(task, session_stim, model, params, col_names)
+% function calls appropriate model function to get simulation data
+
 mod_data = struct;
 
 for it=1:length(session_stim)
     task.stimData = session_stim{it};
 
-    if model == 5 %WSLS no memory
-        data = SimulateNBandits_WSLS_dumb(task, params);
-    elseif model == 4 %Lazy Arrow
+    if model == 4 %Lazy Arrow
         data = SimulateNBandits_LA(task);
     elseif model == 3 %WSLS
         data = SimulateNBandits_WSLS(task, params);
@@ -21,14 +21,18 @@ for it=1:length(session_stim)
     data = array2table(data);
     data.Properties.VariableNames = col_names;
     % do data analysis, store it
-    [rew_data, prob_data, pstay] = analyzeswitch(data,task);
-    sw(it,:) = mean(rew_data);
+    [prob_data, pstay] = analyzeswitch(data,task);
+    sw_corr(it,:) = mean(prob_data.correct);
+    sw_rew(it,:) = mean(prob_data.reward);
     sw_prob_old(it, :) = mean(prob_data.old_bandit);
     sw_prob_new(it, :) = mean(prob_data.new_bandit);
     sw_pstay(it, :) = pstay; 
+    sw_pcorr(it, :) = pcorr; 
 end
 
-mod_data.rew_data = sw;
+% add all data to structure
+mod_data.corr_data = sw_corr;
+mod_data.rew_data = sw_rew;
 mod_data.prob_old = sw_prob_old;
 mod_data.prob_new = sw_prob_new;
 mod_data.pstay = sw_pstay;
