@@ -1,25 +1,24 @@
 function data = SimulateNBandits_LA(task)
-%% 
-% LAZY ARROWS 
+%% LAZY ARROWS 
 % pick side most arrows are pointing to
-% data - Ntrials * (7+Nbandits) matrix
-%[t cb iter stim b s cor r]];
-% 1. trial number. 1->Ntrials
-% 2. correct bandit- 1->Nbandits
-% 3. iteration number in the block. 1->?
-% 3+[1:nbandits]. Stimulus [0,Ndirections]^Nbandits 
-% 3+nbandits + 1 - chosen bandit (unobserved) (not choosing bandit tho)
-% 3+nbandits + 2 - chosen side (observed)
-% 3+nbandits + 3 - correct? (unobseverd) 
-% 3+nbandits + 4 - reward? (obseverd) 
+%
+% data - matrix with Ntrials rows
+% [t cb iter stim rew_incorr rew_corr b s corr r prob]
+% t: trial number. 1->Ntrials
+% cb: correct bandit- 1->Nbandits
+% iter: iteration number in the block. 1->?
+% stim: Stimulus [0:Ndirections-1]^Nbandits
+% rew_incorr: reward on trial if incorrect response (0 or 1)
+% rew_corr: reward on trial if correct response (0 or 1)
+% b: chosen bandit (unobserved by experimenter)
+% s: chosen side (observed)
+% corr: correct? (unobserved by participant) 
+% r: reward? (observed) 
+% prob: probability of choosing each bandit based on overlap
 
 %% set task params
-prew = task.prew;
-pswitch = task.pswitch;
-Ntrials = task.Ntrials;
-Nbandits = task.Nbandits;
-Ndirections = task.Ndirections;
-stimData = task.stimData; %[t cb iter stim rew_incorr rew_corr]
+Ntrials = task.Ntrials; %number of trials in the session
+stimData = task.stimData; %Stimulus Data [t cb iter stim rew_incorr rew_corr]
 
 %%
 
@@ -45,11 +44,11 @@ for t = 1:Ntrials
     b = find(mnrnd(1,prob));
     
     % correct side?
-    cor = s==stim(cb);
+    corr = s==stim(cb);
     % probabilistic reward
-    r = rew(1+cor);
+    r = rew(1+corr);
     
-    model_data = [model_data;[b s cor r prob]];
+    model_data = [model_data;[b s corr r prob]];
          
 end
 

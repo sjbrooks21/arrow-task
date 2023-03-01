@@ -1,33 +1,35 @@
 function data = SimulateNBandits_WSLS(task, params)
-%% 
+%% Win-Stay-Lose-Shift (Smart Shift)
 % Pick arrow and stick with arrow until no reward, then switch to arrow
 % pointing in another direction
-% data - Ntrials * (7+Nbandits) matrix
-%[t cb iter stim b s cor r]];
-% 1. trial number. 1->Ntrials
-% 2. correct bandit- 1->Nbandits
-% 3. iteration number in the block. 1->?
-% 3+[1:nbandits]. Stimulus [0,1]^Nbandits 
-% 3+nbandits + 1 - chosen bandit (unobserved) (not choosing bandit tho)
-% 3+nbandits + 2 - chosen side (observed)
-% 3+nbandits + 3 - correct? (unobseverd) 
-% 3+nbandits + 4 - reward? (obseverd) 
+%
+% data - matrix with Ntrials rows
+% [t cb iter stim rew_incorr rew_corr b s corr r prob]
+% t: trial number. 1->Ntrials
+% cb: correct bandit- 1->Nbandits
+% iter: iteration number in the block. 1->?
+% stim: Stimulus [0:Ndirections-1]^Nbandits
+% rew_incorr: reward on trial if incorrect response (0 or 1)
+% rew_corr: reward on trial if correct response (0 or 1)
+% b: chosen bandit (unobserved by experimenter)
+% s: chosen side (observed)
+% corr: correct? (unobserved by participant) 
+% r: reward? (observed) 
+% prob: probability of choosing each bandit at start of trial
 
 %% set task params
-prew = task.prew;
-pswitch = task.pswitch;
-Ntrials = task.Ntrials;
-Nbandits = task.Nbandits;
-Ndirections = task.Ndirections;
-stimData = task.stimData; %[t cb iter stim rew_incorr rew_corr]
+Ntrials = task.Ntrials; %number of trials in the session
+Nbandits = task.Nbandits; %number of bandits presented
+Ndirections = task.Ndirections; %number of possible directions to choose from
+stimData = task.stimData; %Stimulus Data [t cb iter stim rew_incorr rew_corr]
 
 %% set model params
-epsilon = params(1);
+epsilon = params(1); %noise
 
 %%
 
 model_data = [];
-prob = ones(1,Nbandits)/Nbandits;
+prob = ones(1,Nbandits)/Nbandits; %initialize bandits to have equal probability
 
 for t = 1:Ntrials
     cb = stimData(t, 2);
@@ -51,11 +53,11 @@ for t = 1:Ntrials
     end
     
     % correct side?
-    cor = s==stim(cb);
+    corr = s==stim(cb);
     % probabilistic reward
-    r = rew(1+cor);
+    r = rew(1+corr);
     
-    model_data = [model_data;[b s cor r prob]];
+    model_data = [model_data;[b s corr r prob]];
     
     %update probabilities based on reward
     if r %if reward, chose same bandit next time
