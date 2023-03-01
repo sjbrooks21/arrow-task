@@ -17,7 +17,7 @@ for p = 1:length(pswitches)
         for b = 1:length(Nbandits)
             task.Nbandits = Nbandits(b);
             for i = 1:nSims
-                session_stim{iter, i} = get_stim3(task);
+                session_stim{iter, i} = get_stim(task);
             end 
             iter = iter + 1;
         end
