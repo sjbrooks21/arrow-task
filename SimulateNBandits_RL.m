@@ -1,4 +1,8 @@
 function data = SimulateNBandits_RL(task,params)
+%% Skylar Brooks 03/03/2023
+% rotation project in CCN lab
+% extended from previous code by Anne Collins- CCN Lab
+%
 %% Reinforcement Learning
 % Choose bandits based on Q-values, update Q-values after reward outcome
 % Has additional stick parameter which increases likelihood of staying with

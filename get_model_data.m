@@ -1,5 +1,9 @@
 function mod_data = get_model_data(task, session_stim, model, params, col_names)
-% function calls appropriate model function to get simulation data
+%% Skylar Brooks 03/03/2023
+% rotation project in CCN lab
+%
+% calls appropriate model function to get simulation data for each session
+
 
 mod_data = struct;
 

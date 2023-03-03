@@ -1,4 +1,8 @@
 function data = SimulateNBandits(task,params)
+%% Skylar Brooks 03/03/2023
+% rotation project in CCN lab
+% extended from previous code by Anne Collins- CCN Lab
+%
 %% Bayes Model
 % Choose bandits based on priors, update priors after reward outcome
 %

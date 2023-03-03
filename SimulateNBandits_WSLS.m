@@ -1,4 +1,7 @@
 function data = SimulateNBandits_WSLS(task, params)
+%% Skylar Brooks 03/03/2023
+% rotation project in CCN lab
+%
 %% Win-Stay-Lose-Shift (Smart Shift)
 % Pick arrow and stick with arrow until no reward, then switch to arrow
 % pointing in another direction

@@ -1,4 +1,7 @@
 function all_stims = generate_stimuli(task, stim_params)
+%% Skylar Brooks 03/03/2023
+% rotation project in CCN lab
+%
 % gets stimuli for each task setup
 
 Nbandits = stim_params.Nbandits;

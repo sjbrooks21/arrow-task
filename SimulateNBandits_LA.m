@@ -1,4 +1,7 @@
 function data = SimulateNBandits_LA(task, params)
+%% Skylar Brooks 03/03/2023
+% rotation project in CCN lab
+%
 %% LAZY ARROWS 
 % pick side most arrows are pointing to
 %

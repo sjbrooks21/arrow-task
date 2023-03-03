@@ -1,4 +1,7 @@
 function data = get_stim(task, visualize)
+%% Skylar Brooks 03/03/2023
+% rotation project in CCN lab
+%
 % generates stimuli sequence for one session
 % option to use weighting on categories of stimuli combinations:
 % all-same, all-unique, and some-different

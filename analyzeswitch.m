@@ -1,7 +1,11 @@
 function [sw_prob, pstay] = analyzeswitch(data,task)
+%% Skylar Brooks 03/03/2023
+% rotation project in CCN lab
+% extended from previous code by Anne Collins- CCN Lab
+%
 % sw_prob: structure containing arrays with size = number of switches x 14
-% gets probability of correct & reward of 4 trials before switch through 9 trials after switch (14
-% total)
+% gets probability of correct & reward of 4 trials before switch through 9 
+% trials after switch (14 total)
 % also tracks probability of previous correct bandit (prew-switch) & new
 % correct bandit (post-switch)
 %
