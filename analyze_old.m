@@ -46,8 +46,6 @@ nSims = stim_params.nSims;
 pswitches = stim_params.pswitches;
 Ndirections = stim_params.Ndirections;
 Nbandits = stim_params.Nbandits;
-model_idx = 0:4;
-nModels = length(model_idx);
 
 cols = {[0 0.4470 0.7410], [0.8500 0.3250 0.0980],[0.9290 0.6940 0.1250],...
     [0.4940 0.1840 0.5560], [0.4660 0.6740 0.1880]};
@@ -66,11 +64,9 @@ all_model_data = struct;
 for p = 1:length(pswitches)
     task.pswitch = pswitches(p);
 
-    all_model_data(p).reward = cell(nModels, length(Ndirections)*length(Nbandits));
-    all_model_data(p).prob_old = cell(nModels, length(Ndirections)*length(Nbandits));
-    all_model_data(p).prob_new = cell(nModels, length(Ndirections)*length(Nbandits));
-    all_model_data(p).pstay_nrew = cell(1, length(Ndirections)*length(Nbandits));
-    all_model_data(p).pstay_rew = cell(1, length(Ndirections)*length(Nbandits));
+    all_model_data(p).reward = cell(5, length(Ndirections)*length(Nbandits));
+    all_model_data(p).prob_old = cell(5, length(Ndirections)*length(Nbandits));
+    all_model_data(p).prob_new = cell(5, length(Ndirections)*length(Nbandits));
     
     iter = 1;
 
@@ -99,47 +95,43 @@ for p = 1:length(pswitches)
             %get stimuli
             session_stim = stim{p}(iter, :);
 
-            all_model_data(p).pstay_nrew{iter} = NaN(nSims, nModels);
-            all_model_data(p).pstay_rew{iter}= NaN(nSims, nModels);
-
-            for model = model_idx
+            for model = 0:4
                 mod_data = get_model_data(task, session_stim, model, mod_params{model+1},col_names);
                 all_model_data(p).reward{model+1, iter} = mod_data.rew_data;
                 all_model_data(p).prob_old{model+1, iter} = mod_data.prob_old;
                 all_model_data(p).prob_new{model+1, iter} = mod_data.prob_new;
-                all_model_data(p).pstay_nrew{iter}(:,model+1) = mod_data.pstay(:, 1);
-                all_model_data(p).pstay_rew{iter}(:, model+1) = mod_data.pstay(:, 2);
+                all_model_data(p).pstay{model+1, iter} = mod_data.pstay;
             end
             iter = iter + 1;
         end
     end
 end
 
-% mod_pstays = struct;
-% 
-% for p = 1:length(pswitches)
-%     all_mod_pstay_rew = {};
-%     for i = 1:5
-%         for j = 1:3
-%             all_mod_pstay_rew{j}(:, i) = all_model_data(p).pstay{i, j}(:, 2);
-%         end
-% 
-%     end
-%     all_mod_pstay_nrew = {};
-%     for i = 1:5
-%         for j = 1:3
-%             all_mod_pstay_nrew{j}(:, i) = all_model_data(p).pstay{i, j}(:, 1);
-%         end
-%     end
-% 
-%     mod_pstays(p).pstay_nrew = all_mod_pstay_nrew;
-%     mod_pstays(p).pstay_rew = all_mod_pstay_rew;
-% 
-% end
+mod_pstays = struct;
+
+for p = 1:length(pswitches)
+    all_mod_pstay_rew = {};
+    for i = 1:5
+        for j = 1:3
+            all_mod_pstay_rew{j}(:, i) = all_model_data(p).pstay{i, j}(:, 2);
+        end
+
+    end
+    all_mod_pstay_nrew = {};
+    for i = 1:5
+        for j = 1:3
+            all_mod_pstay_nrew{j}(:, i) = all_model_data(p).pstay{i, j}(:, 1);
+        end
+    end
+
+    mod_pstays(p).pstay_nrew = all_mod_pstay_nrew;
+    mod_pstays(p).pstay_rew = all_mod_pstay_rew;
+
+end
 
 
 %save('all_model_data_2_13_23.mat', 'all_model_data')
-save(strcat('all_model_data_', string(datetime('today')), '_', prew_str(3:end),'.mat'), 'all_model_data')
+save(strcat('all_model_data_', string(datetime('today')), '_', prew_str(3:end),'.mat'), 'all_model_data', 'mod_pstays')
 
 %% Plot pstays
 figure
@@ -183,18 +175,18 @@ for p = 1:length(pswitches)
     
     task.pswitch = pswitches(p);
 
-    %max(mean over sessions)  
-    data_holder(p).max_prew_pre_avg = nan(5, length(Ndirections)*length(Nbandits));
-    data_holder(p).max_prew_post_avg = nan(5, length(Ndirections)*length(Nbandits));
+    %max of the mean  
+    data_holder(p).prew_pre_avg = nan(5, length(Ndirections)*length(Nbandits));
+    data_holder(p).prew_post_avg = nan(5, length(Ndirections)*length(Nbandits));
 
-    %max & avg reward of individual sessions
-    data_holder(p).prew_pre_ind = cell(5, length(Ndirections)*length(Nbandits));
-    data_holder(p).prew_post_ind = cell(5, length(Ndirections)*length(Nbandits));
+    %reward (max & avg) distribution over sessions
+    data_holder(p).prew_pre_dist = cell(5, length(Ndirections)*length(Nbandits));
+    data_holder(p).prew_post_dist = cell(5, length(Ndirections)*length(Nbandits));
 
     %reward fit coeff distribution over session
-    data_holder(p).rew_coeffs = cell(5, length(Ndirections)*length(Nbandits));
-    data_holder(p).old_bandit_coeffs = cell(5, length(Ndirections)*length(Nbandits));
-    data_holder(p).new_bandit_coeffs = cell(5, length(Ndirections)*length(Nbandits));
+    data_holder(p).rew_coeffs_logit = cell(5, length(Ndirections)*length(Nbandits));
+    data_holder(p).old_bandit_coeffs_logit = cell(5, length(Ndirections)*length(Nbandits));
+    data_holder(p).new_bandit_coeffs_logit = cell(5, length(Ndirections)*length(Nbandits));
 
     %other measures
     data_holder(p).time_forget_old = nan(5, length(Ndirections)*length(Nbandits));
@@ -218,14 +210,14 @@ for p = 1:length(pswitches)
                 %max reward probability preswitch
                 trials = -4:9;
                 mean_sw = mean(sw);
-                data_holder(p).max_prew_pre_avg(model+1, iter) = max(mean_sw(1:4));
+                data_holder(p).prew_pre_avg(model+1, iter) = max(mean_sw(1:4));
 
                 %max reward probability post switch
-                data_holder(p).max_prew_post_avg(model+1, iter) = max(mean_sw(11:end));
+                data_holder(p).prew_post_avg(model+1, iter) = max(mean_sw(11:end));
 
-                %max and average reward values of each session
-                data_holder(p).prew_pre_ind{model+1, iter} = [max(sw(:, 1:4), [], 2) mean(sw(:, 1:4), 2)];
-                data_holder(p).prew_post_ind{model+1, iter} = [max(sw(:, 11:end), [], 2) mean(sw(:, 11:end), 2)];
+                %max reward distributions
+                data_holder(p).max_prew_pre_dist{model+1, iter} = [max(sw(:, 1:4), [], 2) mean(sw(:, 1:4), 2)];
+                data_holder(p).max_prew_post_dist{model+1, iter} = [max(sw(:, 11:end), [], 2) mean(sw(:, 11:end), 2)];
 
                 %time to forget old bandit
                 mean_prob_old = mean(sw_prob_old);
@@ -241,7 +233,7 @@ for p = 1:length(pswitches)
                     data_holder(p).time_learn_new(model+1, iter) = tln-1;
                 end
 
-                %Curve Fitting 
+                %Distributions
                 
                 prob_rew_dist = nan(nSims, 4);
                 prob_old_dist = nan(nSims, 4);
@@ -251,7 +243,7 @@ for p = 1:length(pswitches)
                 x = trials;
                 x_post = trials(5:end);
 
-                for n = 1:nSims
+                for n = 1:100%nSims
                     %logistic coeffs
                     
 
