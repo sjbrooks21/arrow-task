@@ -2,9 +2,14 @@ function data = SimulateNBandits_WSLS(task, params)
 %% Skylar Brooks 03/03/2023
 % rotation project in CCN lab
 %
-%% Win-Stay-Lose-Shift (Smart Shift)
+%% Win-Stay-Lose-Shift 
+% shift options (default: smart)
+% (Smart Shift)
 % Pick arrow and stick with arrow until no reward, then switch to arrow
 % pointing in another direction
+%
+% (Random Shift)
+% Pick arrow and stick with arrow until no reward, then switch to random arrow
 %
 % data - matrix with Ntrials rows
 % [t cb iter stim rew_incorr rew_corr b s corr r prob]
@@ -28,6 +33,12 @@ stimData = task.stimData; %Stimulus Data [t cb iter stim rew_incorr rew_corr]
 
 %% set model params
 epsilon = params(1); %noise
+
+if length(params) > 1
+    smart_shift = params(2);
+else
+    smart_shift = 1; %default to smart shift
+end
 
 %%
 
@@ -63,15 +74,21 @@ for t = 1:Ntrials
     model_data = [model_data;[b s corr r prob]];
     
     %update probabilities based on reward
-    if r %if reward, chose same bandit next time
+    %if reward, chose same bandit next time
+    if r
         prob = zeros(1, Nbandits);
         prob(b) = 1;
-    elseif any(stim ~= stim(b)) %choose another bandit if at least one pointing in different direction
-        prob = stim ~= stim(b);  
-        prob = prob/(sum(prob));
-    else %if all pointing in same direction, randomly choose another bandit
+        
+    %if no reward, determine how to shift
+        %if smart_shift == 0 or all pointing in same direction, randomly choose another bandit
+    elseif ~smart_shift || ~any(stim ~= stim(b))
         prob = ones(1, Nbandits);
         prob(b)= 0;
+        prob = prob/(sum(prob));
+
+    %otherwise choose another bandit that is pointing in different direction
+    else 
+        prob = stim ~= stim(b);  
         prob = prob/(sum(prob));
     end
    
